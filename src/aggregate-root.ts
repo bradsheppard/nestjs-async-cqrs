@@ -17,12 +17,12 @@ export abstract class AggregateRoot<EventBase extends IEvent = IEvent> {
     return this[IS_AUTO_COMMIT_ENABLED];
   }
 
-  publish<T extends EventBase = EventBase>(event: T) {}
+  async publish<T extends EventBase = EventBase>(event: T): Promise<void> {}
 
-  publishAll<T extends EventBase = EventBase>(event: T[]) {}
+  async publishAll<T extends EventBase = EventBase>(event: T[]): Promise<void> {}
 
-  commit() {
-    this.publishAll(this[INTERNAL_EVENTS]);
+  async commit(): Promise<void> {
+    await this.publishAll(this[INTERNAL_EVENTS]);
     this[INTERNAL_EVENTS].length = 0;
   }
 
@@ -34,18 +34,20 @@ export abstract class AggregateRoot<EventBase extends IEvent = IEvent> {
     return this[INTERNAL_EVENTS];
   }
 
-  loadFromHistory(history: EventBase[]) {
-    history.forEach((event) => this.apply(event, true));
+  async loadFromHistory(history: EventBase[]): Promise<void> {
+    for(const entry of history) {
+      await this.apply(entry, true);
+    }
   }
 
-  apply<T extends EventBase = EventBase>(event: T, isFromHistory = false) {
+  async apply<T extends EventBase = EventBase>(event: T, isFromHistory = false): Promise<void> {
     if (!isFromHistory && !this.autoCommit) {
       this[INTERNAL_EVENTS].push(event);
     }
-    this.autoCommit && this.publish(event);
+    this.autoCommit && await this.publish(event);
 
     const handler = this.getEventHandler(event);
-    handler && handler.call(this, event);
+    handler && await handler.call(this, event);
   }
 
   protected getEventHandler<T extends EventBase = EventBase>(

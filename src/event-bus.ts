@@ -52,15 +52,17 @@ export class EventBus<EventBase extends IEvent = IEvent>
     this.subscriptions.forEach((subscription) => subscription.unsubscribe());
   }
 
-  publish<T extends EventBase>(event: T) {
-    return this._publisher.publish(event);
+  async publish<T extends EventBase>(event: T): Promise<void> {
+    return await this._publisher.publish(event);
   }
 
-  publishAll<T extends EventBase>(events: T[]) {
+  async publishAll<T extends EventBase>(events: T[]): Promise<void> {
     if (this._publisher.publishAll) {
-      return this._publisher.publishAll(events);
+      return await this._publisher.publishAll(events);
     }
-    return (events || []).map((event) => this._publisher.publish(event));
+    for(const event of events) {
+      await this._publisher.publish(event);
+    }
   }
 
   bind(handler: IEventHandler<EventBase>, name: string) {
