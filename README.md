@@ -6,7 +6,7 @@
 ## Installation
 
 ```bash
-$ npm install --save @bradsheppard/nestjs-async-cqrs
+$ npm install --save nestjs-async-cqrs
 ```
 
 ## Quick Start
